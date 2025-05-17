@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RPi Car Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            grid-gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        button {
+            background: #2c2c2c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #444;
+        }
+        .toggle {
+            position: relative;
+            width: 60px;
+            height: 34px;
+        }
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .mode-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Control RPi Car</h1>
+    <label class="mode-label">
+        <span>Mode:</span>
+        <label class="toggle">
+            <input type="checkbox" id="modeSwitch" onchange="changeMode()">
+            <span class="slider"></span>
+        </label>
+        <span id="modeText">Manual</span>
+    </label>
+    <div class="controls">
+        <div></div>
+        <button id="forwardBtn" onclick="sendCommand('forward')">&#8679;</button>
+        <div></div>
+
+        <button id="leftBtn" onclick="sendCommand('left')">&#8678;</button>
+        <button id="centerBtn" onclick="sendCommand('center')">&#9632;</button>
+        <button id="rightBtn" onclick="sendCommand('right')">&#8680;</button>
+
+        <div></div>
+        <button id="backwardBtn" onclick="sendCommand('backward')">&#8675;</button>
+        <div></div>
+
+        <button id="stopBtn" onclick="sendCommand('stop')">Stop</button>
+    </div>
+
+    <script>
+        function setControlsEnabled(enabled) {
+            document.querySelectorAll('.controls button').forEach(btn => btn.disabled = !enabled);
+        }
+
+        function changeMode() {
+            const isAuto = document.getElementById('modeSwitch').checked;
+            const mode = isAuto ? 'auto' : 'manual';
+            document.getElementById('modeText').textContent = isAuto ? 'Automatic' : 'Manual';
+            setControlsEnabled(!isAuto);
+            fetch(`/mode?mode=${mode}`)
+                .then(response => response.text())
+                .then(data => console.log(data))
+                .catch(err => console.error('Error:', err));
+        }
+
+        function sendCommand(action) {
+            fetch(`/cmd?action=${action}`)
+                .then(response => response.text())
+                .then(data => console.log(data))
+                .catch(err => console.error('Error:', err));
+        }
+
+        window.onload = () => {
+            setControlsEnabled(true);
+        };
+    </script>
+</body>
+</html>
